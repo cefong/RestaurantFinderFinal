@@ -182,7 +182,7 @@ void printRestaurant(int i) {
 	getRestaurant(&r, restaurants[i].index, &card, &cache);
 
 	// Set its colour based on whether or not it is the selected restaurant.
-	if (i % 21 != selectedRest) {
+	if (i % REST_DISP_NUM != selectedRest) {
 		tft.setTextColor(TFT_WHITE, TFT_BLACK);
 	}
 	else {
@@ -190,7 +190,7 @@ void printRestaurant(int i) {
 	}
 	// sets cursor to correct position on screen
 	// modulo 21 to account for # of restaurants that can be displayed on screen
-	tft.setCursor(0, (i%21)*15);
+	tft.setCursor(0, (i% REST_DISP_NUM)*15);
 	tft.print(r.name);
 }
 
@@ -221,7 +221,7 @@ void scrollList() {
 	if (selectedRest == REST_DISP_NUM) {
 		tft.fillScreen(TFT_BLACK);
 		// display next page with 21 new restaurants
-		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) < REST_DISP_NUM; ++overallRestIndex) {
+		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) < REST_DISP_NUM - 1; ++overallRestIndex) {
 			printRestaurant(overallRestIndex);
 			Serial.println(overallRestIndex);
 		}
@@ -229,7 +229,7 @@ void scrollList() {
 	} else if (selectedRest == -1) {
 		tft.fillScreen(TFT_BLACK);
 		// display previous page with 21 new restaurants
-		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) > 0; --overallRestIndex) {
+		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) > 1; --overallRestIndex) {
 			printRestaurant(overallRestIndex);
 		}
 		selectedRest = REST_DISP_NUM - 1;
@@ -370,11 +370,16 @@ void scrollingMenu() {
 	}
 
 	selectedRest = constrain(selectedRest, 0, REST_DISP_NUM -1);
+	// the current index of the selected restaurant relative to the entire list
+	int currentRestIndex = selectedRest + (overallRestIndex - 21);
+	// the previous index of the selected restaurant relative to the entire list
+	int oldRestIndex = oldRest + (overallRestIndex - 21);
+
 	// If we picked a new restaurant, update the way it and the previously
 	// selected restaurant are displayed.
-	if (oldRest != selectedRest) {
-		printRestaurant(oldRest);
-		printRestaurant(selectedRest);
+	if (oldRestIndex != currentRestIndex) {
+		printRestaurant(oldRestIndex);
+		printRestaurant(currentRestIndex);
 		delay(50); // so we don't scroll too fast
 	}
 

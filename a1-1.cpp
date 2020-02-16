@@ -67,6 +67,9 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 // space with too many variables.
 int selectedRest;
 
+// the currently selected restaurant index in the sorted list
+int overallRestIndex;
+
 // which mode are we in?
 enum DisplayMode { MAP, MENU } displayMode;
 
@@ -205,8 +208,8 @@ void beginMode1() {
 	selectedRest = 0;
 
 	// Print the list of restaurants.
-	for (int i = 0; i < REST_DISP_NUM; ++i) {
-		printRestaurant(i);
+	for (overallRestIndex = 0; overallRestIndex < REST_DISP_NUM; ++overallRestIndex) {
+		printRestaurant(overallRestIndex);
 	}
 
 	displayMode = 1;
@@ -216,41 +219,20 @@ void beginMode1() {
 void scrollList() {
 	// if selectedRest has exceeded number of names we can display
 	if (selectedRest == REST_DISP_NUM) {
-		for (i = 0; (i%21) < REST_DISP_NUM; ++i) {
-			printRestaurant(i);
-		}	
-	} else {
-		// If we picked a new restaurant, update the way it and the previously
-		// selected restaurant are displayed.
-		if (oldRest != selectedRest) {
-			printRestaurant(oldRest);
-			printRestaurant(selectedRest);
-			delay(50); // so we don't scroll too fast
+		tft.fillScreen(TFT_BLACK);
+		// display next page with 21 new restaurants
+		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) < REST_DISP_NUM; ++overallRestIndex) {
+			printRestaurant(overallRestIndex);
 		}
-
-		// If we clicked on a restaurant.
-		if (digitalRead(JOY_SEL) == LOW) {
-			restaurant r;
-			getRestaurant(&r, restaurants[selectedRest].index, &card, &cache);
-			// Calculate the new map view.
-
-			// Center the map view at the restaurant, constraining against the edge of
-			// the map if necessary.
-			curView.mapX = constrain(lon_to_x(r.lon)-DISP_WIDTH/2, 0, MAPWIDTH-DISP_WIDTH);
-			curView.mapY = constrain(lat_to_y(r.lat)-DISP_HEIGHT/2, 0, MAPHEIGHT-DISP_HEIGHT);
-
-			// Draw the cursor, clamping to an edge of the map if needed.
-			curView.cursorX = constrain(lon_to_x(r.lon) - curView.mapX, CURSOR_SIZE/2, DISP_WIDTH-CURSOR_SIZE/2-1);
-			curView.cursorY = constrain(lat_to_y(r.lat) - curView.mapY, CURSOR_SIZE/2, DISP_HEIGHT-CURSOR_SIZE/2-1);
-
-			preView = curView;
-
-			beginMode0();
-
-			// Ensures a long click of the joystick will not register twice.
-			while (digitalRead(JOY_SEL) == LOW) { delay(10); }
-	}
-	}
+		selectedRest = 0;	
+	} else if (selectedRest == -1) {
+		tft.fillScreen(TFT_BLACK);
+		// display previous page with 21 new restaurants
+		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) > 0; --overallRestIndex) {
+			printRestaurant(overallRestIndex);
+		}
+		selectedRest = REST_DISP_NUM - 1;
+	} 
 }
 // Checks if the edge was nudged and scrolls the map if it was.
 void checkRedrawMap() {
@@ -381,8 +363,41 @@ void scrollingMenu() {
 	else if (v < JOY_CENTRE - JOY_DEADZONE) {
 		--selectedRest;
 	}
-	scrollList();
+	if (selectedRest == -1 || selectedRest == REST_DISP_NUM) {
+		scrollList();
+	}
+
 	selectedRest = constrain(selectedRest, 0, REST_DISP_NUM -1);
+	// If we picked a new restaurant, update the way it and the previously
+	// selected restaurant are displayed.
+	if (oldRest != selectedRest) {
+		printRestaurant(oldRest);
+		printRestaurant(selectedRest);
+		delay(50); // so we don't scroll too fast
+	}
+
+	// If we clicked on a restaurant.
+	if (digitalRead(JOY_SEL) == LOW) {
+		restaurant r;
+		getRestaurant(&r, restaurants[selectedRest].index, &card, &cache);
+		// Calculate the new map view.
+
+		// Center the map view at the restaurant, constraining against the edge of
+		// the map if necessary.
+		curView.mapX = constrain(lon_to_x(r.lon)-DISP_WIDTH/2, 0, MAPWIDTH-DISP_WIDTH);
+		curView.mapY = constrain(lat_to_y(r.lat)-DISP_HEIGHT/2, 0, MAPHEIGHT-DISP_HEIGHT);
+
+		// Draw the cursor, clamping to an edge of the map if needed.
+		curView.cursorX = constrain(lon_to_x(r.lon) - curView.mapX, CURSOR_SIZE/2, DISP_WIDTH-CURSOR_SIZE/2-1);
+		curView.cursorY = constrain(lat_to_y(r.lat) - curView.mapY, CURSOR_SIZE/2, DISP_HEIGHT-CURSOR_SIZE/2-1);
+
+		preView = curView;
+
+		beginMode0();
+
+		// Ensures a long click of the joystick will not register twice.
+		while (digitalRead(JOY_SEL) == LOW) { delay(10); }
+	}
 }
 
 int main() {

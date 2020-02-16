@@ -42,6 +42,30 @@ void insertionSort(RestDist restaurants[]) {
 	}
 }
 
+
+int pivot(RestDist restaurants[], int start, int end) {
+	int pi = restaurants[end].dist;
+	int i = (start - 1);
+
+	for (int j = start; j <= end - 1; j++) {
+		if (restaurants[j].dist <= pi) {
+			i++;
+			swap(restaurants[i], restaurants[j]);
+		}
+	}
+
+	swap(restaurants[i+1], restaurants[end]);
+	return i+1;
+}
+
+void quickSort(RestDist restaurants[], int start, int end) {
+	if (start < end) {
+		int pi = pivot(restaurants, start, end);
+		quickSort(restaurants, start, pi - 1);
+		quickSort(restaurants, pi + 1, end);
+	}
+}
+
 // Computes the manhattan distance between two points (x1, y1) and (x2, y2).
 int16_t manhattan(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	return abs(x1-x2) + abs(y1-y2);
@@ -64,5 +88,5 @@ void getAndSortRestaurants(const MapView& mv, RestDist restaurants[], Sd2Card* c
 	}
 
 	// Now sort them.
-	insertionSort(restaurants);
+	quickSort(restaurants, 0, NUM_RESTAURANTS - 1);
 }

@@ -223,6 +223,7 @@ void scrollList() {
 		// display next page with 21 new restaurants
 		for (overallRestIndex; (overallRestIndex%REST_DISP_NUM) < REST_DISP_NUM; ++overallRestIndex) {
 			printRestaurant(overallRestIndex);
+			Serial.println(overallRestIndex);
 		}
 		selectedRest = 0;	
 	} else if (selectedRest == -1) {
@@ -363,6 +364,7 @@ void scrollingMenu() {
 	else if (v < JOY_CENTRE - JOY_DEADZONE) {
 		--selectedRest;
 	}
+
 	if (selectedRest == -1 || selectedRest == REST_DISP_NUM) {
 		scrollList();
 	}
@@ -379,7 +381,7 @@ void scrollingMenu() {
 	// If we clicked on a restaurant.
 	if (digitalRead(JOY_SEL) == LOW) {
 		restaurant r;
-		getRestaurant(&r, restaurants[selectedRest].index, &card, &cache);
+		getRestaurant(&r, restaurants[overallRestIndex].index, &card, &cache);
 		// Calculate the new map view.
 
 		// Center the map view at the restaurant, constraining against the edge of

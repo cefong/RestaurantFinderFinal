@@ -42,7 +42,6 @@ void insertionSort(RestDist restaurants[]) {
 	}
 }
 
-
 int pivot(RestDist restaurants[], int start, int end) {
 	int pi = restaurants[end].dist;
 	int i = (start - 1);
@@ -84,9 +83,14 @@ void getAndSortRestaurants(const MapView& mv, RestDist restaurants[], Sd2Card* c
 		getRestaurant(&r, i, card, cache);
 		restaurants[i].index = i;
 		restaurants[i].dist = manhattan(lat_to_y(r.lat), lon_to_x(r.lon),
-																		mv.mapY + mv.cursorY, mv.mapX + mv.cursorX);
+								mv.mapY + mv.cursorY, mv.mapX + mv.cursorX);
 	}
 
 	// Now sort them.
-	quickSort(restaurants, 0, NUM_RESTAURANTS - 1);
+	uint32_t time1 = millis();
+	insertionSort(restaurants);
+	uint32_t time2 = millis();
+	uint32_t timeTotal = time2 - time1; 
+	Serial.print("time taken: ");
+	Serial.println(timeTotal);
 }
